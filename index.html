@@ -81,16 +81,24 @@
             word-break: break-all;
         }
 
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
         button {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            padding: 12px;
+            padding: 10px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             background: var(--primary);
             color: white;
-            width: 100%;
+            flex: 1;
+            min-width: 80px;
             transition: opacity 0.2s;
         }
         button:active {
@@ -133,14 +141,6 @@
             color: #999;
             font-size: 0.75em;
         }
-
-        #miningCooldown {
-            font-size: 0.8em;
-            color: #666;
-            text-align: center;
-            margin-top: 5px;
-            height: 1.2em;
-        }
     </style>
 </head>
 <body>
@@ -160,16 +160,11 @@
             <div class="key-display" id="publicKeyDisplay"></div>
             <div class="balance-display" id="balanceDisplay">0</div>
             <div style="text-align:center; color:#999; font-size: 0.8em; margin-bottom: 15px;">当前余额</div>
-            <button class="secondary" onclick="resetIdentity()">重置身份</button>
+            <div class="button-group">
+                <button class="secondary" onclick="resetIdentity()">重置身份</button>
+                <button class="success" onclick="withdraw()">提现 (15932447705)</button>
+            </div>
         </div>
-    </div>
-
-    <!-- 挖矿与提现面板 -->
-    <div class="card">
-        <div class="card-title">挖矿 & 提现</div>
-        <button id="btnMine" onclick="mineOneToken()" class="warning">点击挖矿 (+1 代币)</button>
-        <div id="miningCooldown"></div>
-        <button onclick="withdraw()" class="success" style="margin-top:10px;">提现 (联系: 15932447705)</button>
     </div>
 
     <!-- 转账面板 -->
@@ -257,12 +252,14 @@
                 saveData(STORAGE_KEYS.BALANCE, 0);
                 saveData(STORAGE_KEYS.USED_NONCES, []);
                 displayIdentity();
+                startAutoMining();
             } catch (e) { alert('生成失败: ' + e.message); }
         }
 
         function resetIdentity() {
             if (confirm('确定重置吗？余额将清零。')) {
                 localStorage.clear();
+                stopAutoMining();
                 displayIdentity();
             }
         }
@@ -280,20 +277,22 @@
             }
         }
 
-        // 挖矿逻辑：2秒点击一次
-        let lastMineTime = 0;
-        function mineOneToken() {
-            if (!loadData(STORAGE_KEYS.PUBLIC_KEY)) { alert('请先生成身份'); return; }
-            const now = Date.now();
-            if (now - lastMineTime < 2000) {
-                const wait = Math.ceil((2000 - (now - lastMineTime)) / 1000);
-                document.getElementById('miningCooldown').textContent = `请等待 ${wait} 秒...`;
-                return;
+        // 自动挖矿逻辑：每 2 秒自动执行一次
+        let autoMiningInterval = null;
+
+        function startAutoMining() {
+            if (!loadData(STORAGE_KEYS.PUBLIC_KEY)) return;
+            if (autoMiningInterval) clearInterval(autoMiningInterval);
+            autoMiningInterval = setInterval(() => {
+                setBalance(getBalance() + 1);
+            }, 2000);
+        }
+
+        function stopAutoMining() {
+            if (autoMiningInterval) {
+                clearInterval(autoMiningInterval);
+                autoMiningInterval = null;
             }
-            lastMineTime = now;
-            document.getElementById('miningCooldown').textContent = '挖矿成功！';
-            setBalance(getBalance() + 1);
-            setTimeout(() => { document.getElementById('miningCooldown').textContent = ''; }, 1000);
         }
 
         async function generateTransfer() {
@@ -361,7 +360,14 @@
 
         function withdraw() { alert('提现申请已记录，请联系：15932447705'); }
 
-        window.onload = displayIdentity;
+        window.onload = () => {
+            displayIdentity();
+            if (loadData(STORAGE_KEYS.PUBLIC_KEY)) {
+                startAutoMining();
+            }
+        };
+
+        window.onbeforeunload = stopAutoMining;
     </script>
 </body>
 </html>
