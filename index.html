@@ -3,606 +3,429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>离线代币转移系统</title>
+    <title>BTC 离线密码学代币系统</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --primary-color: #f7931a; /* Bitcoin Orange */
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-radius: 12px;
         }
-
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
-            color: #333;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.8em;
-            color: #222;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 16px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .card-title {
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #222;
-        }
-
-        label {
-            display: block;
-            font-size: 0.9em;
-            margin-top: 12px;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        input, textarea {
-            font-size: 16px;
-            padding: 12px;
-            margin-bottom: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-family: inherit;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
-        }
-
-        button {
-            font-size: 16px;
-            padding: 12px 16px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            border: none;
-            border-radius: 8px;
-            background: #007bff;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        button:active {
-            opacity: 0.9;
-        }
-
-        button.secondary {
-            background: #6c757d;
-            margin-right: 8px;
-            flex: 1;
-        }
-
-        button.secondary:hover {
-            background: #545b62;
-        }
-
-        button.success {
-            background: #28a745;
-        }
-
-        button.success:hover {
-            background: #218838;
-        }
-
-        button.danger {
-            background: #dc3545;
-        }
-
-        button.danger:hover {
-            background: #c82333;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .button-group button {
-            flex: 1;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
-        .balance-display {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #28a745;
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        .header {
             text-align: center;
-            margin: 15px 0;
-            padding: 15px;
-            background: #f0f8f5;
-            border-radius: 8px;
+            margin-bottom: 24px;
         }
-
-        .key-display {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 0.75em;
-            word-break: break-all;
-            margin: 8px 0;
-            max-height: 100px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            border: 1px solid #e9ecef;
-            color: #495057;
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-
-        .alert {
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-size: 0.95em;
-            display: none;
+        h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+            display: inline-block;
         }
-
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-
-        .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-
-        .alert.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-            display: block;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .section-divider {
-            height: 1px;
-            background: #e9ecef;
-            margin: 20px 0;
-        }
-
-        .mining-status {
+        .balance-container {
             text-align: center;
             padding: 10px;
-            font-size: 0.9em;
-            color: #666;
         }
-
-        .mining-active {
-            color: #28a745;
-            font-weight: 600;
+        .balance-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2e7d32;
         }
-
+        .address-box {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            margin: 10px 0;
+            border: 1px solid #eee;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
         button:disabled {
-            background: #ccc;
+            background-color: #ccc;
             cursor: not-allowed;
-            opacity: 0.6;
         }
-
-        button:disabled:hover {
-            background: #ccc;
+        .secondary-btn {
+            background-color: #6c757d;
         }
-
-        .mining-cooldown {
-            font-size: 0.85em;
-            color: #999;
-            text-align: center;
-            margin-top: 8px;
+        .mining-btn {
+            background-color: #28a745;
+        }
+        .withdraw-btn {
+            background-color: #dc3545;
+        }
+        .label {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: block;
+        }
+        .alert {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        .alert-info { background: #e3f2fd; color: #0d47a1; }
+        .alert-success { background: #e8f5e9; color: #1b5e20; }
+        .alert-error { background: #ffebee; color: #b71c1c; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            color: #666;
+            margin: 0;
+            border-radius: 0;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
         }
     </style>
 </head>
 <body>
-    <h1>💰 离线代币转移系统</h1>
-
+<div class="container">
+    <div class="header">
+        <h1>BTC 离线代币系统</h1>
+        <p>基于 ECDSA 密码学的完全离线转账</p>
+    </div>
+    <div class="card">
+        <div class="balance-container">
+            <div class="label">当前余额</div>
+            <div id="balance" class="balance-value">0.00</div>
+            <div>Tokens</div>
+        </div>
+    </div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('identity')">身份</button>
+        <button class="tab-btn" onclick="showTab('transfer')">发送</button>
+        <button class="tab-btn" onclick="showTab('receive')">接收</button>
+        <button class="tab-btn" onclick="showTab('mining')">挖矿/提现</button>
+    </div>
     <!-- 身份面板 -->
-    <div class="card" id="identityCard">
-        <div class="card-title">👤 我的身份</div>
-        <div id="identityContent">
-            <button onclick="generateIdentity()">生成新身份</button>
+    <div id="identity" class="tab-content active card">
+        <h2>我的身份</h2>
+        <div id="no-identity-msg" class="alert alert-info">尚未生成身份，请点击下方按钮开始。</div>
+        <div id="identity-info" style="display:none;">
+            <span class="label">我的收款地址 (公钥):</span>
+            <div id="my-public-key" class="address-box"></div>
+            <button class="secondary-btn" onclick="copyText('my-public-key')">复制地址</button>
         </div>
-        <div id="identityInfo" class="hidden">
-            <label>公钥 (收款地址)</label>
-            <div class="key-display" id="publicKeyDisplay"></div>
-            
-            <div class="balance-display" id="balanceDisplay">0</div>
-            
-            <button id="miningButton" onclick="mine()" style="background: #ff9800; font-size: 1.1em; padding: 15px;">⛏️ 点击挖矿 (获得 1 个代币)</button>
-            <div class="mining-cooldown" id="cooldownText"></div>
-
-            <div class="button-group">
-                <button class="secondary" onclick="resetIdentity()">重置身份</button>
-                <button class="success" onclick="withdraw()">提现 (15932447705)</button>
-            </div>
-        </div>
+        <button id="gen-identity-btn" onclick="generateNewIdentity()">生成新身份</button>
+        <p style="font-size:0.8rem; color:#888;">* 身份信息保存在浏览器本地，请勿清除缓存。</p>
     </div>
-
     <!-- 转账面板 -->
-    <div class="card">
-        <div class="card-title">📤 转账 (发送)</div>
-        <label>接收方公钥</label>
-        <textarea id="receiverPubKey" placeholder="粘贴对方的公钥..."></textarea>
-        
-        <label>转账金额</label>
-        <input type="number" id="amount" value="1" min="1">
-        
-        <button class="success" onclick="generateTransfer()">生成转账凭证</button>
-        
-        <div id="transferResult" class="hidden">
-            <label>转账凭证 (复制给接收方)</label>
-            <textarea id="transferVoucher" readonly></textarea>
-            <button class="secondary" onclick="copyVoucher()">📋 复制凭证</button>
+    <div id="transfer" class="tab-content card">
+        <h2>生成转账凭证</h2>
+        <span class="label">接收方公钥:</span>
+        <input type="text" id="dest-pubkey" placeholder="粘贴接收方的公钥">
+        <span class="label">转账金额:</span>
+        <input type="number" id="send-amount" placeholder="0.00" step="0.01">
+        <button onclick="createTransferVoucher()">生成凭证字符串</button>
+        <div id="voucher-result" style="display:none;">
+            <span class="label">转账凭证 (请复制发给对方):</span>
+            <textarea id="voucher-output" rows="5" readonly></textarea>
+            <button class="secondary-btn" onclick="copyText('voucher-output')">复制凭证</button>
         </div>
-        <div id="transferError" class="alert error"></div>
     </div>
-
     <!-- 接收面板 -->
-    <div class="card">
-        <div class="card-title">📥 接收代币</div>
-        <label>粘贴凭证</label>
-        <textarea id="voucherInput" placeholder="在此粘贴收到的凭证..."></textarea>
-        
-        <button class="success" onclick="verifyAndReceive()">验证并接收</button>
-        
-        <div id="receiveResult" class="alert success"></div>
-        <div id="receiveError" class="alert error"></div>
+    <div id="receive" class="tab-content card">
+        <h2>验证并接收</h2>
+        <span class="label">粘贴收到的凭证:</span>
+        <textarea id="voucher-input" rows="5" placeholder="粘贴对方发来的 Base64 字符串"></textarea>
+        <button onclick="processReceiveVoucher()">验证并接收代币</button>
+        <div id="receive-status"></div>
     </div>
-
-    <div style="text-align: center; padding: 20px; color: #999; font-size: 0.85em;">
-        ✓ 完全离线 · 浏览器本地存储 · 无任何网络依赖
+    <!-- 挖矿/提现面板 -->
+    <div id="mining" class="tab-content card">
+        <h2>挖矿与提现</h2>
+        <div class="alert alert-info">每 2 秒可点击一次生成 1.00 代币。</div>
+        <button id="mining-btn" class="mining-btn" onclick="mineToken()">点击挖矿 (每2秒)</button>
+        <hr>
+        <button class="withdraw-btn" onclick="withdraw()">提现显示手机号</button>
     </div>
-
-    <script>
-        // ============ 存储键定义 ============
-        const STORAGE_KEYS = {
-            PUBLIC_KEY: 'btc_off_pub',
-            PRIVATE_KEY: 'btc_off_priv',
-            BALANCE: 'btc_off_bal',
-            USED_NONCES: 'btc_off_nonces'
+</div>
+<script>
+    // --- 核心状态 ---
+    let state = {
+        balance: 0,
+        publicKey: null,
+        privateKey: null,
+        publicKeyBase64: '',
+        usedNonces: []
+    };
+    // --- 初始化 ---
+    async function init() {
+        const savedState = localStorage.getItem('btc_offline_state');
+        if (savedState) {
+            const parsed = JSON.parse(savedState);
+            state.balance = parsed.balance || 0;
+            state.usedNonces = parsed.usedNonces || [];
+            if (parsed.keyPair) {
+                state.publicKeyBase64 = parsed.keyPair.pub;
+                // 恢复密钥对象
+                state.publicKey = await importPublicKey(parsed.keyPair.pub);
+                state.privateKey = await importPrivateKey(parsed.keyPair.priv);
+                showIdentity();
+            }
+        }
+        updateUI();
+    }
+    function updateUI() {
+        document.getElementById('balance').innerText = state.balance.toFixed(2);
+        if (state.publicKeyBase64) {
+            document.getElementById('no-identity-msg').style.display = 'none';
+            document.getElementById('identity-info').style.display = 'block';
+            document.getElementById('my-public-key').innerText = state.publicKeyBase64;
+            document.getElementById('gen-identity-btn').style.display = 'none';
+        }
+    }
+    function saveState() {
+        const toSave = {
+            balance: state.balance,
+            usedNonces: state.usedNonces,
+            keyPair: state.publicKeyBase64 ? {
+                pub: state.publicKeyBase64,
+                priv: localStorage.getItem('btc_priv_tmp') // 实际生产中应更安全处理
+            } : null
         };
-
-        // ============ 工具函数 ============
-        function saveData(key, value) {
-            localStorage.setItem(key, JSON.stringify(value));
-        }
-
-        function loadData(key) {
-            const raw = localStorage.getItem(key);
-            return raw ? JSON.parse(raw) : null;
-        }
-
-        function arrayBufferToBase64(buffer) {
-            const bytes = new Uint8Array(buffer);
-            let binary = '';
-            bytes.forEach(b => binary += String.fromCharCode(b));
-            return btoa(binary);
-        }
-
-        function base64ToArrayBuffer(base64) {
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        // ============ 密钥导入导出 ============
-        async function importPublicKey(base64Key) {
-            const keyBuffer = base64ToArrayBuffer(base64Key);
-            return await crypto.subtle.importKey(
-                'spki',
-                keyBuffer,
+        localStorage.setItem('btc_offline_state', JSON.stringify(toSave));
+    }
+    // --- 身份管理 ---
+    async function generateNewIdentity() {
+        try {
+            const keyPair = await crypto.subtle.generateKey(
                 { name: 'ECDSA', namedCurve: 'P-256' },
                 true,
-                ['verify']
+                ['sign', 'verify']
             );
+            state.publicKey = keyPair.publicKey;
+            state.privateKey = keyPair.privateKey;
+            const pubExport = await crypto.subtle.exportKey('raw', keyPair.publicKey);
+            state.publicKeyBase64 = bufferToBase64(pubExport);
+            const privExport = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+            const privBase64 = bufferToBase64(privExport);
+            localStorage.setItem('btc_priv_tmp', privBase64); // 临时持久化私钥
+            saveState();
+            updateUI();
+            alert('身份生成成功！');
+        } catch (e) {
+            console.error(e);
+            alert('生成失败: ' + e.message);
         }
-
-        async function importPrivateKey(base64Key) {
-            const keyBuffer = base64ToArrayBuffer(base64Key);
-            return await crypto.subtle.importKey(
-                'pkcs8',
-                keyBuffer,
-                { name: 'ECDSA', namedCurve: 'P-256' },
-                true,
-                ['sign']
+    }
+    function showIdentity() {
+        document.getElementById('no-identity-msg').style.display = 'none';
+        document.getElementById('identity-info').style.display = 'block';
+        document.getElementById('my-public-key').innerText = state.publicKeyBase64;
+        document.getElementById('gen-identity-btn').style.display = 'none';
+    }
+    // --- 转账逻辑 ---
+    async function createTransferVoucher() {
+        const destPub = document.getElementById('dest-pubkey').value.trim();
+        const amount = parseFloat(document.getElementById('send-amount').value);
+        if (!state.privateKey) return alert('请先生成身份');
+        if (!destPub) return alert('请输入接收方地址');
+        if (isNaN(amount) || amount <= 0) return alert('请输入有效金额');
+        if (amount > state.balance) return alert('余额不足');
+        const payload = {
+            to: destPub,
+            amount: amount,
+            nonce: crypto.randomUUID(),
+            timestamp: Date.now()
+        };
+        const payloadStr = JSON.stringify(payload);
+        const signature = await crypto.subtle.sign(
+            { name: 'ECDSA', hash: {name: 'SHA-256'} },
+            state.privateKey,
+            new TextEncoder().encode(payloadStr)
+        );
+        const voucher = {
+            payload: payload,
+            signature: bufferToBase64(signature),
+            from: state.publicKeyBase64
+        };
+        const voucherBase64 = btoa(JSON.stringify(voucher));
+        // 扣除余额
+        state.balance -= amount;
+        saveState();
+        updateUI();
+        document.getElementById('voucher-output').value = voucherBase64;
+        document.getElementById('voucher-result').style.display = 'block';
+        alert('转账凭证已生成，余额已扣除。请将凭证发送给对方。');
+    }
+    // --- 接收逻辑 ---
+    async function processReceiveVoucher() {
+        const input = document.getElementById('voucher-input').value.trim();
+        const statusDiv = document.getElementById('receive-status');
+        try {
+            const voucher = JSON.parse(atob(input));
+            const { payload, signature, from } = voucher;
+            // 1. 验证是否是发给自己的
+            if (payload.to !== state.publicKeyBase64) {
+                throw new Error('接收方地址不匹配');
+            }
+            // 2. 检查 nonce 防双花
+            if (state.usedNonces.includes(payload.nonce)) {
+                throw new Error('该凭证已被使用过');
+            }
+            // 3. 验证签名
+            const senderPubKey = await importPublicKey(from);
+            const isValid = await crypto.subtle.verify(
+                { name: 'ECDSA', hash: {name: 'SHA-256'} },
+                senderPubKey,
+                base64ToBuffer(signature),
+                new TextEncoder().encode(JSON.stringify(payload))
             );
-        }
-
-        async function exportPublicKey(key) {
-            const exported = await crypto.subtle.exportKey('spki', key);
-            return arrayBufferToBase64(exported);
-        }
-
-        async function exportPrivateKey(key) {
-            const exported = await crypto.subtle.exportKey('pkcs8', key);
-            return arrayBufferToBase64(exported);
-        }
-
-        // ============ 身份管理 ============
-        async function generateIdentity() {
-            try {
-                const keyPair = await crypto.subtle.generateKey(
-                    { name: 'ECDSA', namedCurve: 'P-256' },
-                    true,
-                    ['sign', 'verify']
-                );
-                const pub = await exportPublicKey(keyPair.publicKey);
-                const priv = await exportPrivateKey(keyPair.privateKey);
-                
-                saveData(STORAGE_KEYS.PUBLIC_KEY, pub);
-                saveData(STORAGE_KEYS.PRIVATE_KEY, priv);
-                saveData(STORAGE_KEYS.BALANCE, 0);
-                saveData(STORAGE_KEYS.USED_NONCES, []);
-                
-                displayIdentity();
-                startAutoMining();
-            } catch (e) {
-                alert('生成失败: ' + e.message);
+            if (!isValid) {
+                throw new Error('签名验证失败，凭证无效或已被篡改');
             }
+            // 4. 增加余额
+            state.balance += payload.amount;
+            state.usedNonces.push(payload.nonce);
+            saveState();
+            updateUI();
+            statusDiv.innerHTML = `<div class="alert alert-success">成功接收 ${payload.amount} 代币！</div>`;
+            document.getElementById('voucher-input').value = '';
+        } catch (e) {
+            statusDiv.innerHTML = `<div class="alert alert-error">错误: ${e.message}</div>`;
         }
-
-        function resetIdentity() {
-            if (confirm('确定重置吗？所有数据将被清除。')) {
-                localStorage.clear();
-                stopAutoMining();
-                displayIdentity();
-            }
+    }
+    // --- 挖矿与提现 ---
+    let lastMineTime = 0;
+    function mineToken() {
+        const now = Date.now();
+        if (now - lastMineTime < 2000) {
+            alert('挖矿太频繁了，请等待 2 秒。');
+            return;
         }
-
-        function displayIdentity() {
-            const pubKey = loadData(STORAGE_KEYS.PUBLIC_KEY);
-            const identityContent = document.getElementById('identityContent');
-            const identityInfo = document.getElementById('identityInfo');
-            
-            if (pubKey) {
-                identityContent.classList.add('hidden');
-                identityInfo.classList.remove('hidden');
-                document.getElementById('publicKeyDisplay').textContent = pubKey;
-                document.getElementById('balanceDisplay').textContent = getBalance();
+        state.balance += 1.0;
+        lastMineTime = now;
+        saveState();
+        updateUI();
+        const btn = document.getElementById('mining-btn');
+        btn.disabled = true;
+        let count = 2;
+        btn.innerText = `冷却中 (${count}s)`;
+        const timer = setInterval(() => {
+            count--;
+            if (count <= 0) {
+                clearInterval(timer);
+                btn.disabled = false;
+                btn.innerText = '点击挖矿 (每2秒)';
             } else {
-                identityContent.classList.remove('hidden');
-                identityInfo.classList.add('hidden');
+                btn.innerText = `冷却中 (${count}s)`;
             }
+        }, 1000);
+    }
+    function withdraw() {
+        alert('提现请求已提交！\n联系客服手机号：15932447705');
+    }
+    // --- 辅助工具 ---
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+    function copyText(id) {
+        const el = document.getElementById(id);
+        const text = el.value || el.innerText;
+        navigator.clipboard.writeText(text).then(() => alert('已复制到剪贴板'));
+    }
+    function bufferToBase64(buf) {
+        return btoa(String.fromCharCode(...new Uint8Array(buf)));
+    }
+    function base64ToBuffer(base64) {
+        const binary_string = window.atob(base64);
+        const len = binary_string.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
         }
-
-        // ============ 余额管理 ============
-        function getBalance() {
-            return loadData(STORAGE_KEYS.BALANCE) || 0;
-        }
-
-        function setBalance(val) {
-            saveData(STORAGE_KEYS.BALANCE, val);
-            document.getElementById('balanceDisplay').textContent = val;
-        }
-
-        // ============ 手动挖矿（2秒冷却） ============
-        let miningCooldown = false;
-        let cooldownTimer = null;
-
-        function mine() {
-            if (miningCooldown) return;
-            
-            setBalance(getBalance() + 1);
-            miningCooldown = true;
-            
-            const btn = document.getElementById('miningButton');
-            const cooldownEl = document.getElementById('cooldownText');
-            btn.disabled = true;
-            
-            let remaining = 2;
-            cooldownEl.textContent = `请等待 ${remaining} 秒后再点击...`;
-            
-            cooldownTimer = setInterval(() => {
-                remaining--;
-                if (remaining <= 0) {
-                    clearInterval(cooldownTimer);
-                    miningCooldown = false;
-                    btn.disabled = false;
-                    cooldownEl.textContent = '';
-                } else {
-                    cooldownEl.textContent = `请等待 ${remaining} 秒后再点击...`;
-                }
-            }, 1000);
-        }
-
-        // ============ 转账功能 ============
-        async function generateTransfer() {
-            const receiver = document.getElementById('receiverPubKey').value.trim();
-            const amount = parseInt(document.getElementById('amount').value);
-            const myPub = loadData(STORAGE_KEYS.PUBLIC_KEY);
-            const myPriv = loadData(STORAGE_KEYS.PRIVATE_KEY);
-
-            const errorEl = document.getElementById('transferError');
-            errorEl.style.display = 'none';
-
-            if (!myPub) {
-                errorEl.textContent = '请先生成身份';
-                errorEl.style.display = 'block';
-                return;
-            }
-
-            if (!receiver) {
-                errorEl.textContent = '请输入接收方公钥';
-                errorEl.style.display = 'block';
-                return;
-            }
-
-            if (isNaN(amount) || amount <= 0) {
-                errorEl.textContent = '请输入有效的转账金额';
-                errorEl.style.display = 'block';
-                return;
-            }
-
-            if (amount > getBalance()) {
-                errorEl.textContent = '余额不足';
-                errorEl.style.display = 'block';
-                return;
-            }
-
-            try {
-                const payload = {
-                    receiver: receiver,
-                    amount: amount,
-                    nonce: crypto.randomUUID(),
-                    ts: Date.now()
-                };
-
-                const payloadStr = JSON.stringify(payload);
-                const privKey = await importPrivateKey(myPriv);
-                
-                const sig = await crypto.subtle.sign(
-                    { name: 'ECDSA', hash: 'SHA-256' },
-                    privKey,
-                    new TextEncoder().encode(payloadStr)
-                );
-
-                const voucher = btoa(JSON.stringify({
-                    payload: payload,
-                    sig: arrayBufferToBase64(sig),
-                    sender: myPub
-                }));
-
-                setBalance(getBalance() - amount);
-                document.getElementById('transferVoucher').value = voucher;
-                document.getElementById('transferResult').classList.remove('hidden');
-                errorEl.style.display = 'none';
-            } catch (e) {
-                errorEl.textContent = '生成失败: ' + e.message;
-                errorEl.style.display = 'block';
-            }
-        }
-
-        function copyVoucher() {
-            const el = document.getElementById('transferVoucher');
-            el.select();
-            document.execCommand('copy');
-            alert('已复制到剪贴板');
-        }
-
-        // ============ 接收功能 ============
-        async function verifyAndReceive() {
-            const input = document.getElementById('voucherInput').value.trim();
-            const resultEl = document.getElementById('receiveResult');
-            const errorEl = document.getElementById('receiveError');
-            
-            resultEl.style.display = 'none';
-            errorEl.style.display = 'none';
-
-            if (!input) {
-                errorEl.textContent = '请粘贴凭证';
-                errorEl.style.display = 'block';
-                return;
-            }
-
-            try {
-                const data = JSON.parse(atob(input));
-                const { payload, sig, sender } = data;
-                const myPub = loadData(STORAGE_KEYS.PUBLIC_KEY);
-
-                if (!myPub) {
-                    errorEl.textContent = '请先生成身份';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-
-                // 检查接收方是否匹配
-                if (payload.receiver !== myPub) {
-                    errorEl.textContent = '接收方不匹配，这不是发给您的凭证';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-
-                // 检查 nonce 是否已使用
-                const nonces = loadData(STORAGE_KEYS.USED_NONCES) || [];
-                if (nonces.includes(payload.nonce)) {
-                    errorEl.textContent = '凭证已被使用，防止双花';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-
-                // 验证签名
-                const senderKey = await importPublicKey(sender);
-                const payloadStr = JSON.stringify(payload);
-                const isValid = await crypto.subtle.verify(
-                    { name: 'ECDSA', hash: 'SHA-256' },
-                    senderKey,
-                    base64ToArrayBuffer(sig),
-                    new TextEncoder().encode(payloadStr)
-                );
-
-                if (!isValid) {
-                    errorEl.textContent = '签名验证失败，凭证可能被篡改';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-
-                // 全部验证通过，接收代币
-                nonces.push(payload.nonce);
-                saveData(STORAGE_KEYS.USED_NONCES, nonces);
-                setBalance(getBalance() + payload.amount);
-
-                resultEl.textContent = `✓ 接收成功！获得 ${payload.amount} 个代币`;
-                resultEl.style.display = 'block';
-                document.getElementById('voucherInput').value = '';
-            } catch (e) {
-                errorEl.textContent = '凭证格式错误或验证失败: ' + e.message;
-                errorEl.style.display = 'block';
-            }
-        }
-
-        // ============ 提现功能 ============
-        function withdraw() {
-            alert('提现申请已记录，请联系：15932447705');
-        }
-
-        // ============ 页面初始化 ============
-        window.addEventListener('load', () => {
-            displayIdentity();
-        });
-
-        window.addEventListener('beforeunload', () => {
-            if (cooldownTimer) clearInterval(cooldownTimer);
-        });
-    </script>
+        return bytes.buffer;
+    }
+    async function importPublicKey(base64) {
+        return await crypto.subtle.importKey(
+            'raw',
+            base64ToBuffer(base64),
+            { name: 'ECDSA', namedCurve: 'P-256' },
+            true,
+            ['verify']
+        );
+    }
+    async function importPrivateKey(base64) {
+        return await crypto.subtle.importKey(
+            'pkcs8',
+            base64ToBuffer(base64),
+            { name: 'ECDSA', namedCurve: 'P-256' },
+            true,
+            ['sign']
+        );
+    }
+    // 启动
+    init();
+</script>
 </body>
 </html>
