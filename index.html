@@ -211,6 +211,23 @@
             color: #28a745;
             font-weight: 600;
         }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        button:disabled:hover {
+            background: #ccc;
+        }
+
+        .mining-cooldown {
+            font-size: 0.85em;
+            color: #999;
+            text-align: center;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -228,9 +245,8 @@
             
             <div class="balance-display" id="balanceDisplay">0</div>
             
-            <div class="mining-status" id="miningStatus">
-                <span class="mining-active">⛏️ 自动挖矿中...</span>
-            </div>
+            <button id="miningButton" onclick="mine()" style="background: #ff9800; font-size: 1.1em; padding: 15px;">⛏️ 点击挖矿 (获得 1 个代币)</button>
+            <div class="mining-cooldown" id="cooldownText"></div>
 
             <div class="button-group">
                 <button class="secondary" onclick="resetIdentity()">重置身份</button>
@@ -399,23 +415,34 @@
             document.getElementById('balanceDisplay').textContent = val;
         }
 
-        // ============ 自动挖矿 ============
-        let autoMiningInterval = null;
+        // ============ 手动挖矿（2秒冷却） ============
+        let miningCooldown = false;
+        let cooldownTimer = null;
 
-        function startAutoMining() {
-            if (!loadData(STORAGE_KEYS.PUBLIC_KEY)) return;
-            if (autoMiningInterval) clearInterval(autoMiningInterval);
+        function mine() {
+            if (miningCooldown) return;
             
-            autoMiningInterval = setInterval(() => {
-                setBalance(getBalance() + 1);
-            }, 2000);
-        }
-
-        function stopAutoMining() {
-            if (autoMiningInterval) {
-                clearInterval(autoMiningInterval);
-                autoMiningInterval = null;
-            }
+            setBalance(getBalance() + 1);
+            miningCooldown = true;
+            
+            const btn = document.getElementById('miningButton');
+            const cooldownEl = document.getElementById('cooldownText');
+            btn.disabled = true;
+            
+            let remaining = 2;
+            cooldownEl.textContent = `请等待 ${remaining} 秒后再点击...`;
+            
+            cooldownTimer = setInterval(() => {
+                remaining--;
+                if (remaining <= 0) {
+                    clearInterval(cooldownTimer);
+                    miningCooldown = false;
+                    btn.disabled = false;
+                    cooldownEl.textContent = '';
+                } else {
+                    cooldownEl.textContent = `请等待 ${remaining} 秒后再点击...`;
+                }
+            }, 1000);
         }
 
         // ============ 转账功能 ============
@@ -571,12 +598,11 @@
         // ============ 页面初始化 ============
         window.addEventListener('load', () => {
             displayIdentity();
-            if (loadData(STORAGE_KEYS.PUBLIC_KEY)) {
-                startAutoMining();
-            }
         });
 
-        window.addEventListener('beforeunload', stopAutoMining);
+        window.addEventListener('beforeunload', () => {
+            if (cooldownTimer) clearInterval(cooldownTimer);
+        });
     </script>
 </body>
 </html>
